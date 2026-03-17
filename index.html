@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>IBP Outdoor Living – Operations Training</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f7f5f0;}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:#f0f0f0;}
+::-webkit-scrollbar-thumb{background:#3d4a3e;border-radius:99px;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useRef}=React;
+const B={dark:"#3d4a3e",mid:"#5a7a5b",light:"#8aab6e",cream:"#f7f5f0",accent:"#e8a020",red:"#c0392b",blue:"#2471a3",purple:"#7d5a9e",teal:"#1a8a7a"};
+const MODULES=[
+  {id:"intro",icon:"🏡",label:"Welcome",color:B.dark},
+  {id:"team",icon:"👥",label:"Team",color:B.mid},
+  {id:"monday",icon:"🖥️",label:"Monday.com",color:B.blue},
+  {id:"flow",icon:"🔄",label:"Project Flow",color:B.purple},
+  {id:"supervisors",icon:"🦺",label:"Supervisors",color:B.accent},
+  {id:"workers",icon:"👷",label:"Workers",color:B.teal},
+  {id:"repairs",icon:"🔧",label:"Repairs",color:B.red},
+  {id:"logistics",icon:"🚚",label:"Logistics",color:"#1a6e8a"},
+  {id:"schedule",icon:"📅",label:"Schedule",color:B.purple},
+  {id:"rules",icon:"⚡",label:"Key Rules",color:"#b54a00"},
+  {id:"quiz",icon:"🧠",label:"Quiz",color:B.dark},
+];
+const TEAM=[
+  {name:"Eduardo Buratto",role:"Operations & Sales Manager",emoji:"👔",color:B.accent,
+   details:["Oversees all operations","Resolves escalations that supervisors cannot handle","Coordinates the sales team","Accompanies salespeople on more complex estimates","Coordinates commercial builder sales","Maintains relationships with builders","Coordinator of mechanics and approvals","Coordinates the marketing team","Monitors finance to ensure complete collection of all invoices and repairs"]},
+  {name:"You (Natalia Azevedo)",role:"Schedule & Logistics Coordinator",emoji:"⭐",color:B.dark,
+   details:["Manages the entire weekly crew schedule (sqft workers + daily workers)","Confirms logistics delivery for every project before scheduling","Updates all project statuses in Monday.com General Jobs board","Creates sub-items and performs takeoff from blueprint as double-check for Fernanda","Organizes real supervisor measurements for payroll (Jenny) and billing (Fernanda)","Reviews punchout and checklist forms periodically for quality insights","Sends the daily schedule to all crews and drivers at 5:30 PM","Must respond to Dreamscapes group within 5 minutes at all times"]},
+  {name:"Raphaelle",role:"Controller / Purchases / Updates / Schedule Asst.",emoji:"📦",color:B.mid,
+   details:["Inputs ALL new projects into Monday.com (name, ID, location, builder, description, blueprint, coping material)","Responsible for ALL visual material purchases: pavers, travertine, coping","Confirms visual material delivery before project can be scheduled","Moves released projects from Controller board to General Jobs board","Collects repair requests and uploads them to Repairs board","Assists with schedule updates and keeps Monday.com boards current","Tags you and relevant team when payments are received or projects are ready"]},
+  {name:"Fernanda",role:"Finance — Invoice",emoji:"💼",color:"#2e7d5c",
+   details:["Creates delay chart based on blueprint measurements for each project","Inputs project financial data into QuickBooks to estimate total project value","Collects 25% payment for homeowner projects","Tags you and Raphaelle when 25% payment is received (project can be released)","In charge of collections for all projects and repairs"]},
+  {name:"Jenny",role:"Finance — Payroll",emoji:"💰",color:B.purple,
+   details:["Processes payment for all field crews (sqft workers and daily workers)","Uses real measurements submitted by supervisors (via you) to calculate pay","Receives payroll data every Monday — must have measurements by then","Applies backcharge deductions: if crew refuses warranty repair, their pay is docked","Processes payments after Invoice stage is complete"]},
+  {name:"Carlos",role:"Supervisor — Builder Projects",emoji:"🏗️",color:B.dark,
+   details:["Primary supervisor for all pool builder projects","Collects field measurements for payroll and invoice","Ensures the correct progress of each project","Solves day-to-day problems on job sites","Maintains relationships with supervisors from the companies that hire us"]},
+  {name:"Eduardo Moreira",role:"Supervisor — Homeowner Projects / Sales",emoji:"🏠",color:B.mid,
+   details:["Assigned to homeowner projects — preferred for projects he personally sold","Works both as supervisor and salesperson","Strong relationship management with homeowner clients","Can be overloaded — Joseph serves as his backup","Collects field measurements for payroll and invoice","Ensures the correct progress of each project","Solves day-to-day problems on job sites","Maintains relationships with supervisors from the companies that hire us"]},
+  {name:"Joseph",role:"Supervisor / Sales",emoji:"🤝",color:"#2e7d5c",
+   details:["Works as both a salesperson and supervisor","Can supervise pool builder AND homeowner projects","Prioritizes projects he personally sold","Used as backup when Carlos or Eduardo Moreira are overloaded","Collects field measurements for payroll and invoice","Ensures the correct progress of each project","Solves day-to-day problems on job sites","Maintains relationships with supervisors from the companies that hire us"]},
+  {name:"Marcelo",role:"Supervisor — Repairs / Warranty Manager",emoji:"🔧",color:B.red,
+   details:["Responsible for ALL repairs and warranty matters","Warranty Manager — all warranty repairs go through Marcelo","Manages the schedule of Gervin and Julio (daily repair workers)","Dedicated solely to repairs coordination"]},
+  {name:"Arthur",role:"Driver",emoji:"🚛",color:"#1a6e8a",details:["Driver for material and logistics deliveries"]},
+  {name:"Noel",role:"Driver",emoji:"🚚",color:"#1a6e8a",details:["Driver for material and logistics deliveries"]},
+];
+const FLOW_STEPS=[
+  {num:1,icon:"📝",title:"Project Created",who:"Raphaelle",board:"Controller",alert:false,
+   what:"Raphaelle inputs all project details into Monday.com on the Controller and Awaiting Release Builder boards.",
+   how:["Project name, ID number, and location","Pre-order of materials","Upload of blueprint/floor plan"],
+   why:"Projects are entered 1–3 months in advance so materials, permits, and logistics can be organized before execution begins."},
+  {num:2,icon:"📊",title:"Financial Estimate",who:"Fernanda — Finance Invoice",board:"Controller",alert:false,
+   what:"Fernanda creates the Delay Charge in our financial system — adding new projects into QuickBooks with the billing values based on the blueprint measurements, so the company can track the incoming project pipeline.",
+   how:["Fernanda inputs project data into QuickBooks based on blueprint measurements","Values are used to track total expected revenue from incoming projects","You do a takeoff from the blueprint to verify Fernanda's measurements"],
+   why:"The delay charge is critical for accurate billing and financial forecasting. Your double-check catches measurement errors early."},
+  {num:3,icon:"🔓",title:"Release Conditions",who:"Controller Department",board:"Awaiting Release Builder + Controller HO",alert:true,
+   what:"In this step, projects from the Awaiting Release Builder board and the Controller HO board are released once all necessary conditions are met.",
+   how:["📋 AWAITING RELEASE BUILDER: The builder notifies us that the project is ready for execution. The controller changes the status to Ready for General Jobs and the project is automatically directed to the General Jobs board.",
+        "🏠 CONTROLLER HO: Once the contract is signed, there are two conditions to release the project:",
+        "— Condition 1: Receive 25% from the client for projects over $3,000. Under $3,000, a signed contract is sufficient.",
+        "— Condition 2: All permits must be approved — HOA or city permits.",
+        "Once payment is received and permits are approved, the controller changes the status to Ready for General Jobs and the project is automatically directed to the General Jobs board."],
+   why:"Releasing a project without payment or permit creates financial risk and legal complications. This is a hard rule with no exceptions."},
+  {num:4,icon:"🦺",title:"Supervisor Assigned",who:"You",board:"General Jobs",alert:false,
+   what:"You assign the correct supervisor based on project type.",
+   how:["Pool builder projects → Carlos (primary) or Joseph (backup)","Homeowner projects → Eduardo Moreira (primary) or Joseph (backup)","Consider current workload — don't overload one supervisor","Joseph can handle both types and is used when others are at capacity"],
+   why:"The right supervisor assignment ensures the client gets the appropriate service level.",
+   note:"Repairs always go to Marcelo — he is our Warranty Manager and responsible for all warranty matters."},
+  {num:5,icon:"📐",title:"Supervisor Performs Preside (Site Visit)",who:"Supervisor",board:"General Jobs",alert:false,
+   what:"The assigned supervisor visits the site to take measurements and assess logistics needs.",
+   how:["Takes accurate measurements for: pavers, travertine, coping, walls","Calculates sub-material needs: sand, cement, drainage, rebars","Tags Raphaelle with material quantities for purchase order","Tags you with logistics order (sub-materials needed)","Uploads videos for each project phase","Uploads PDF of preside form for double-check and records"],
+   why:"The preside is the foundation of accurate scheduling. Bad measurements create billing errors, material shortages, and payroll disputes."},
+  {num:6,icon:"📅",title:"You Schedule the Project",who:"You",board:"General Jobs + Schedule",alert:true,
+   what:"Only after ALL material and logistics are confirmed can you add the project to the schedule.",
+   how:["Raphaelle confirms visual material delivery is arranged","You confirm logistics (sub-materials) delivery is arranged","BOTH must be confirmed — never schedule with only one","Change status to Schedule Job (current week) or Future Schedule (next week)","Use exact project name from Monday/Matri including numbers"],
+   why:"Scheduling a project without confirmed materials leads to crews arriving at a job site with nothing to install — wasted time, money, and unhappy clients.",
+   note:"⚠️ This is the most common scheduling mistake. Always verify both confirmations before adding to the calendar."},
+  {num:7,icon:"⚙️",title:"Execution — Working On",who:"Crew + Supervisor",board:"General Jobs",alert:false,
+   what:"The project is in active execution. Monitor status and handle logistics issues.",
+   how:["Status changes to Working On (general work) or Working on Coping (coping phase)","Supervisor is on site managing the crew","You monitor for logistics needs: trailer full? Need more materials?","If trailer is full → arrange replacement 1–2 hours before crew finishes"],
+   why:"Active monitoring prevents delays. A full trash trailer or missing materials can stop a crew mid-job."},
+  {num:8,icon:"🔁",title:"Punchout (if needed)",who:"Supervisor + You",board:"General Jobs",alert:false,
+   what:"If the job has unresolved issues or incomplete work, it enters the Punchout process.",
+   how:["Job exits Working On but NOT ready for Invoice → status: Punchout Pending","You schedule the fix work → status: Punchout Schedule","When 100% resolved → status returns to Invoice","Supervisor uploads punchout details and fills out Punchout Link form","Supervisor fills out Checklist form: crew evaluation, what went well/wrong"],
+   why:"The punchout process ensures nothing is left incomplete. The checklist data helps you understand recurring quality problems."},
+  {num:9,icon:"🧾",title:"Invoice Stage — Real Measurements",who:"Supervisor + You + Finance",board:"General Jobs",alert:true,
+   what:"Supervisor submits actual job measurements. You use these for payroll and billing.",
+   how:["Supervisor has until MONDAY to submit real measurements","Real measurements often differ from blueprint — this is normal","You use ONLY the supervisor's real measurements — never blueprint estimates","You send measurements to Jenny (payroll) and Fernanda (billing)","You update measurements based on what was actually executed"],
+   why:"Blueprint measurements are estimates. What was actually installed is what the client gets billed for and what the crew gets paid for. Using wrong measurements = financial disputes.",
+   note:"⚠️ Always use the supervisor's real measurements. Blueprint ≠ installed reality."},
+  {num:10,icon:"✅",title:"Project Complete",who:"Finance Team",board:"Finance",alert:false,
+   what:"Once Invoice and Payroll are processed, the project is complete for you. Your role in General Jobs ends here.",
+   how:["Finance team handles final client payment collection","Jenny processes crew payroll based on measurements you submitted","Fernanda sends final invoice to client based on measurements you submitted","Project moves to General Jobs — Finalized board","You can reference completed project history anytime in the Finalized board"],
+   why:"Clear handoff ensures no task falls between teams. Once you submit the measurements, your responsibility ends and finance takes over cleanly."},
+];
+const WORKERS_DATA=[
+  {name:"Santiago",type:"sqft",priority:1,quality:9,price:"Medium",emoji:"⭐",badge:B.teal,specialty:"Driveways, pavers, deck — all-rounder",skills:{coping:"Possible but not specialty",deck:"Excellent",travertine:"Good",driveway:"Excellent",paver:"Excellent"},notes:"Excellent for delicate and detailed work. Good quality (8–9/10) at a mid-range price. Not a coping specialist but can do it if Fausto/Toby are busy.",availability:"Notify 1–2 days ahead when few projects.",pricing:"By sqft/linear ft — fixed price list"},
+  {name:"Peña",type:"sqft",priority:1,quality:9,price:"Highest",emoji:"⭐",badge:B.teal,specialty:"Travertine specialist, all types, robust walls",skills:{coping:"Yes",deck:"Yes",travertine:"Specialist",driveway:"Yes",paver:"Yes"},notes:"Outstanding quality especially on travertine. Often absent — confirm availability. Most expensive sqft worker but worth it for premium jobs.",availability:"Variable — always confirm before assigning",pricing:"By sqft/linear ft — highest rate"},
+  {name:"Isaías",type:"sqft",priority:1,quality:10,price:"Highest",emoji:"⭐",badge:B.teal,specialty:"Best overall — all types, especially detail work",skills:{coping:"Yes",deck:"Yes",travertine:"Yes",driveway:"Yes",paver:"Yes"},notes:"Best overall. First choice for costly or highly detailed projects. Easy to negotiate with. A little slow but quality justifies it.",availability:"Confirm 1–2 days ahead",pricing:"By sqft/linear ft — highest rate"},
+  {name:"Fausto",type:"coping",priority:1,quality:9,price:"Normal",emoji:"🏆",badge:B.accent,specialty:"Coping specialist #1 — pool coping",skills:{coping:"Best quality",deck:"Reluctant",travertine:"No",driveway:"No",paver:"No"},notes:"Top coping quality. Can be lazy. Reluctant to do work outside coping scope. Always first call for coping jobs.",availability:"Good — confirm schedule",pricing:"By coping linear ft — normal rate"},
+  {name:"Toby",type:"coping",priority:2,quality:7,price:"Normal",emoji:"🥈",badge:B.purple,specialty:"Coping, tile, stone cladding",skills:{coping:"Good (below Fausto)",deck:"No",travertine:"No",driveway:"No",paver:"No"},notes:"Backup coping option. Slightly faster than Fausto, same price. Also does tile and stone cladding.",availability:"Good",pricing:"By sqft — same rate as Fausto"},
+  {name:"Wype",type:"sqft",priority:3,quality:6,price:"Lowest",emoji:"🔩",badge:"#888",specialty:"Heavy bulk work — condos, driveways, large patios",skills:{coping:"No",deck:"Basic",travertine:"No",driveway:"Yes",paver:"Basic"},notes:"Cheapest option — use for bulk/heavy non-detailed work only. NOT for travertine or precision work. Needs close supervision.",availability:"Good — budget jobs",pricing:"By sqft — lowest rate"},
+  {name:"Gilberto",type:"sqft",priority:2,quality:7,price:"Good",emoji:"🌿",badge:B.mid,specialty:"Synthetic turf (ONLY option)",skills:{coping:"No",deck:"No",travertine:"No",driveway:"No",paver:"No",turf:"Specialist"},notes:"ONLY worker who installs synthetic turf. Good quality and fair price. Sometimes misses schedule.",availability:"Variable — confirm early",pricing:"By sqft — competitive rate for turf"},
+  {name:"Mario",type:"daily",priority:1,quality:10,price:"Expensive",emoji:"🥇",badge:B.accent,specialty:"All types — technically the best overall daily worker",skills:{coping:"Yes",deck:"Yes",travertine:"Yes",driveway:"Yes",paver:"Yes",repairs:"Excellent"},notes:"Best technical skill among daily workers. Expensive and complains often — but the quality is there.",availability:"Daily rate — company truck and tools",pricing:"Daily rate — highest"},
+  {name:"Bruno & Mauro",type:"daily",priority:1,quality:9,price:"Expensive",emoji:"👨‍👦",badge:"#2e7d5c",specialty:"Tile, stone cladding, detailed repairs",skills:{coping:"No",deck:"No",travertine:"Specialty",driveway:"No",paver:"No",tile:"Specialist",repairs:"Excellent detail"},notes:"Father (Mauro) and son (Bruno). Usually work together. Slow but very high quality for detailed stone work and repairs.",availability:"Usually work as a pair — can separate if needed",pricing:"Daily rate — expensive, worth it for tile/cladding"},
+  {name:"Felipe",type:"daily",priority:2,quality:7,price:"Medium",emoji:"🚗",badge:B.purple,specialty:"Sealer, general work — uses own vehicle",skills:{sealer:"Yes",repairs:"General",paver:"Basic"},notes:"Uses his own truck, gas, and tools. Complains about route distances — plan efficient routes.",availability:"Good — needs good route planning",pricing:"Daily rate + own vehicle expenses"},
+  {name:"Gervin & Julio",type:"daily",priority:2,quality:8,price:"Fair",emoji:"🔨",badge:"#1a6e8a",specialty:"Travertine repairs, general repairs",skills:{travertine:"Repairs specialist",repairs:"Good",paver:"Basic"},notes:"Good at travertine repairs and general repair work. Can be slow. Schedule managed by Marcelo.",availability:"Managed by Marcelo",pricing:"Daily rate — fair"},
+  {name:"Ludwig & Tarcizio",type:"daily",priority:2,quality:6,price:"Medium",emoji:"🔄",badge:"#888",specialty:"Sealer, paver repairs",skills:{sealer:"Yes",paver_repair:"Yes"},notes:"Most senior daily workers. Unreliable with schedules — always verify location.",availability:"Unreliable — always verify location",pricing:"Daily rate"},
+];
+const REPAIR_STATUSES=[
+  {label:"Needs Check",color:"#fff3cd",text:"#856404",desc:"Repair just arrived. Evaluate if you have all the info needed to schedule."},
+  {label:"Schedule",color:"#d1e7dd",text:"#0f5132",desc:"You have all info — schedule immediately with the appropriate crew."},
+  {label:"Needs Schedule",color:"#cfe2ff",text:"#084298",desc:"Need Marcelo (Warranty Manager) to inspect first and gather info, then you can schedule."},
+  {label:"On Hold",color:"#e9ecef",text:"#495057",desc:"Cannot execute now: client not home, missing materials, or waiting for a construction phase."},
+  {label:"Mastercare Crew",color:"#e8d5f7",text:"#5a1d8a",desc:"Assigned to Marcelo and his dedicated repair team."},
+  {label:"Backcharge",color:"#f8d7da",text:"#842029",desc:"Worker's responsibility — quality warranty (~6 months). Coordinate fix and tag Jenny to deduct cost."},
+  {label:"Needs Approval",color:"#ffe5d0",text:"#7c3d00",desc:"Repair exceeds $1,000. Tag Eduardo Buratto. Cannot proceed until approval is confirmed."},
+  {label:"Approved",color:"#d1e7dd",text:"#0f5132",desc:"Eduardo approved the repair cost. Proceed with scheduling immediately."},
+  {label:"Logistic Material",color:"#cfe2ff",text:"#084298",desc:"Repair requires material logistics to be organized before crew can be sent."},
+  {label:"Send Crew",color:"#d1e7dd",text:"#0f5132",desc:"Warranty crew confirmed. No internal scheduling needed."},
+  {label:"Working On",color:"#d1ffea",text:"#0a6640",desc:"Repair actively in progress by crew on site."},
+  {label:"Needs Update",color:"#fff3cd",text:"#856404",desc:"Repair finished. Raphaelle must add completion photos with date and name of who performed the work."},
+];
+const KEY_RULES=[
+  {icon:"🚫",title:"Do NOT Handle Worker Calls",color:B.red,short:"Supervisors handle workers. Marcelo handles repairs.",detail:"You should never be taking calls from field workers about job questions or repairs. Supervisors handle all worker communication. Marcelo is responsible for all repairs and warranty matters. Only drivers should contact you — and only for schedule or logistics questions."},
+  {icon:"📐",title:"Real Measurements Only",color:B.dark,short:"Blueprint ≠ installed. Always use supervisor's real numbers.",detail:"Blueprint measurements are planning estimates. What was actually installed on site is almost always different. Always use the measurements the supervisor submits after the job — these are the numbers Jenny uses to pay crews and Fernanda uses to bill clients."},
+  {icon:"⏰",title:"Measurements Due Every Monday",color:B.accent,short:"Follow up if not received. Payroll depends on it.",detail:"Supervisors have until Monday of each week to submit real job measurements. Jenny cannot process crew payroll and Fernanda cannot bill clients without these. If a supervisor hasn't submitted by Monday morning, follow up immediately."},
+  {icon:"💲",title:"$1,000 Repair Approval Required",color:B.red,short:"Tag Eduardo for any repair over $1,000.",detail:"The minimum trip charge for any repair is always $250. The typical repair range is $250–$900. Any repair estimated above $1,000 must be tagged to Eduardo Buratto with a 'Needs Approval' status before any work is scheduled."},
+  {icon:"🟢",title:"Both Confirmations Before Scheduling",color:B.teal,short:"Raphaelle (visual) + You (logistics) = only then schedule.",detail:"Never add a project to the schedule until you have TWO confirmations: (1) Raphaelle confirms that the visual material delivery is arranged, and (2) You confirm the logistics (sub-materials) are arranged. Missing either one means the crew arrives at a site without what they need."},
+  {icon:"💬",title:"Dreamscapes = 5 Minutes Max",color:B.purple,short:"Never go silent. Respond within 5 minutes.",detail:"Messages must receive a response within 5 minutes maximum — no exceptions. Even if you don't have an answer yet, acknowledge the message and say you're checking. Silence is unacceptable in this group."},
+  {icon:"🏷️",title:"Exact Project Names Always",color:B.blue,short:"Copy the name exactly from Monday/Matri including numbers.",detail:"Every project entry in the schedule must use the exact same name — character for character, number for number — as it appears in Monday.com. Never abbreviate, rename, or shorten project names."},
+  {icon:"🗑️",title:"Dirty Trailers → Landfill Immediately",color:B.mid,short:"No dirty trailers in the warehouse.",detail:"If a trailer comes back with debris and there's no urgent demand for it, send it to the landfill immediately. Dumping costs a minimum of $150 — but storing trash at the warehouse is not an option. Max 2 days for trailer logistics."},
+  {icon:"💪",title:"Be Firm with Workers",color:B.accent,short:"Show conviction. Don't let workers take advantage.",detail:"As a coordinator, workers may test your boundaries. You must be firm and show conviction when communicating. If a worker seems evasive, address it directly. A GPS tracking system is being implemented to verify worker locations and hours."},
+  {icon:"📅",title:"Send Schedule at 5:30 PM Daily",color:B.dark,short:"Send the next day's schedule to all crews and drivers at 5:30 PM.",detail:"Every evening at 5:30 PM, you send the next day's schedule to all field crews and drivers. This is your responsibility. The schedule must be clear, organized, and sent on time so every crew and driver knows exactly where they are going and what they are doing the next day."},
+];
+const QUIZ=[
+  {q:"A builder project is in Awaiting Release Builder. What triggers it to move to General Jobs?",
+   opts:["You confirm logistics are ready","Fernanda confirms 25% payment received","The builder notifies that the project is ready for execution and the controller changes the status","Eduardo approves the release"],
+   ans:2,exp:"For builder projects, the builder notifies IBP that the project is ready. The controller then changes the status to Ready for General Jobs and the project moves automatically."},
+  {q:"A homeowner project costs $2,500. What is required to release it to General Jobs?",
+   opts:["25% deposit + permit approved","Signed contract only — no deposit required for projects under $3,000","Full payment + permit","Blueprint upload + supervisor assigned"],
+   ans:1,exp:"For homeowner projects under $3,000, only a signed contract is required. The 25% deposit is only mandatory for projects over $3,000."},
+  {q:"A repair comes in and needs more information before scheduling. Who should always be listed as the supervisor?",
+   opts:["Carlos — he knows the site best","Eduardo Moreira — he sold the project","Marcelo — he is our Warranty Manager and responsible for all warranty matters","Joseph — he is available as backup"],
+   ans:2,exp:"Always list Marcelo as the Supervisor for repairs, since he is our Warranty Manager and responsible for all warranty matters."},
+  {q:"After a job is complete, the supervisor sends measurements that differ from the original blueprint. Which do you use for payroll and billing?",
+   opts:["The blueprint — it's the official planning document","Average of both","The supervisor's real measurements — what was actually installed","Ask Fernanda to decide"],
+   ans:2,exp:"Always use the supervisor's real measurements. Blueprint numbers are planning estimates. Real installed measurements are what the crew gets paid for and what the client gets billed for."},
+  {q:"For coping work, who is the first priority worker to assign?",
+   opts:["Santiago","Isaías","Fausto — top coping specialist","Wype"],
+   ans:2,exp:"Fausto is always the first priority for coping work. Toby is the backup only if Fausto is unavailable."},
+  {q:"A message comes into the Dreamscapes group. What is the maximum response time?",
+   opts:["30 minutes","By end of the same day","1 hour","5 minutes — respond immediately"],
+   ans:3,exp:"The Dreamscapes group requires a 5-minute maximum response time. Even if you don't have an answer, acknowledge the message immediately."},
+  {q:"Raphaelle confirms visual materials are ready. Can you add the project to this week's schedule?",
+   opts:["Yes — material confirmation is enough","Only if the supervisor preside is also done","No — you also need to confirm logistics (sub-materials) delivery","Yes, as long as the permit was approved"],
+   ans:2,exp:"BOTH confirmations are required: Raphaelle confirms visual materials AND you confirm logistics. Missing either = do not schedule."},
+  {q:"A project is 100% complete with no issues. What is the correct Monday.com status?",
+   opts:["Punchout Pending","Needs Update","Invoice","Working On"],
+   ans:2,exp:"When a project completes without issues, it moves directly to Invoice status. Punchout Pending is only used when there are unresolved items."},
+  {q:"What is the minimum charge for any repair visit, regardless of the work done?",
+   opts:["$0 — warranty repairs are free","$100 diagnostic fee","$250 — trip charge always applies","$500 minimum"],
+   ans:2,exp:"The minimum for any repair is always $250, which covers the trip charge. Typical range: $250–$900. Only repairs over $1,000 require Eduardo's approval."},
+  {q:"A homeowner project costs $4,000. What TWO conditions must be met before it can be released?",
+   opts:["Blueprint uploaded + supervisor assigned","25% deposit received AND all permits approved","Signed contract only","Full payment + Eduardo's approval"],
+   ans:1,exp:"For homeowner projects over $3,000, both a 25% deposit AND all permits (HOA or city) must be approved before the project can be released to General Jobs."},
+  {q:"Who is responsible for coordinating the sub-materials (sand, cement, drainage) logistics for a project?",
+   opts:["Raphaelle — she handles all materials","Fernanda — she manages the budget","You — the Schedule & Logistics Coordinator","The supervisor after the preside"],
+   ans:2,exp:"You coordinate all sub-material logistics. Raphaelle is responsible for visual materials (pavers, travertine, coping). Both must confirm before a project can be scheduled."},
+  {q:"A repair estimate comes in at $1,200. What is the correct action?",
+   opts:["Schedule it immediately with Marcelo","Tag Jenny to charge the worker","Set status to 'Needs Approval' and tag Eduardo Buratto","Put it On Hold until next week"],
+   ans:2,exp:"Any repair over $1,000 requires Eduardo Buratto's written approval before any work is scheduled. Set the status to Needs Approval and tag him."},
+];
+
+const s={
+  card:(a=B.dark,e={})=>({background:"#fff",borderRadius:14,padding:"20px 22px",marginBottom:16,borderLeft:`4px solid ${a}`,boxShadow:"0 2px 12px rgba(0,0,0,.06)",...e}),
+  tag:(c)=>({background:c+"22",color:c,border:`1px solid ${c}44`,borderRadius:99,padding:"3px 10px",fontSize:11,fontWeight:700,display:"inline-block"}),
+  pill:(bg,t)=>({background:bg,color:t,borderRadius:99,padding:"5px 13px",fontSize:12,fontWeight:700,display:"inline-block",marginBottom:4}),
+  btn:(c=B.dark,e={})=>({background:c,color:"#fff",border:"none",borderRadius:10,padding:"11px 22px",fontSize:14,fontWeight:700,cursor:"pointer",...e}),
+  ghost:(c=B.dark)=>({background:"transparent",color:c,border:`2px solid ${c}`,borderRadius:10,padding:"9px 20px",fontSize:13,fontWeight:700,cursor:"pointer"}),
+  grid:(m=160)=>({display:"grid",gridTemplateColumns:`repeat(auto-fill,minmax(${m}px,1fr))`,gap:12}),
+  h2:{fontSize:22,fontWeight:800,color:B.dark,marginBottom:4},
+  h3:(c=B.dark)=>({fontSize:15,fontWeight:700,color:c,marginBottom:10}),
+  body:{fontSize:14,color:"#444",lineHeight:1.75},
+  small:{fontSize:12,color:"#777",lineHeight:1.6},
+};
+function Logo(){return(<div style={{display:"flex",alignItems:"center",gap:10}}><div style={{background:B.dark,borderRadius:8,padding:"6px 12px",border:"2px solid rgba(255,255,255,.25)"}}><div style={{fontWeight:900,fontSize:22,letterSpacing:3,color:"#fff",lineHeight:1}}>IBP</div><div style={{fontWeight:700,fontSize:9,letterSpacing:3,color:"rgba(255,255,255,.7)",marginTop:2}}>OUTDOOR LIVING</div></div></div>);}
+function Alert({children,color=B.accent}){return(<div style={{background:color+"18",border:`1px solid ${color}55`,borderLeft:`4px solid ${color}`,borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",gap:10}}><span style={{fontSize:20}}>⚠️</span><div style={{...s.body,color:"#555"}}>{children}</div></div>);}
+function SH({icon,title,sub}){return(<div style={{display:"flex",gap:14,alignItems:"center",marginBottom:28}}><div style={{width:52,height:52,background:B.dark,borderRadius:14,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,flexShrink:0}}>{icon}</div><div><div style={s.h2}>{title}</div><div style={{fontSize:13,color:"#888"}}>{sub}</div></div></div>);}
+
+function IntroScreen(){return(<div>
+  <SH icon="🏡" title="Welcome to IBP Outdoor Living" sub="Schedule & Logistics Coordinator — Onboarding"/>
+  <div style={{background:`linear-gradient(135deg,${B.dark},${B.mid})`,borderRadius:16,padding:24,marginBottom:20,color:"#fff"}}>
+    <div style={{fontSize:16,fontWeight:800,marginBottom:10}}>🎯 Your Mission</div>
+    <p style={{fontSize:14,opacity:.9,lineHeight:1.8}}>As the <strong>Schedule & Logistics Coordinator</strong>, you are the operational backbone that connects the field crews, supervisors, materials, and finance team. Every project that gets built on time and on budget passes through your hands.</p>
+  </div>
+  <div style={s.card(B.dark)}>
+    <div style={s.h3(B.dark)}>📋 Core Responsibilities</div>
+    {[["📅","Schedule","Manage weekly and future schedules for all field crews"],["🚚","Logistics","Confirm material and sub-material delivery for every project before scheduling"],["🖥️","Monday.com","Update problems on each project, perform blueprint takeoffs for delay charges, update statuses across all boards, and ensure the system is organized with its proper responsibilities"],["📐","Measurements","Collect real measurements from supervisors every Monday for payroll and billing"],["📞","Communication","Coordinate between supervisors, Raphaelle, Fernanda, Jenny, drivers, and field crews daily"],["🔍","Quality Control","Review punchout and checklist forms periodically to identify patterns in worker quality"]].map(([ic,t,d])=>(<div key={t} style={{display:"flex",gap:10,marginBottom:14,alignItems:"flex-start"}}><div style={{width:36,height:36,background:B.dark+"18",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>{ic}</div><div><div style={{fontSize:14,fontWeight:700,color:B.dark}}>{t}</div><div style={{...s.small,marginTop:2}}>{d}</div></div></div>))}
+  </div>
+  <Alert color={B.accent}><strong>Daily Routine:</strong> Every day at 5:30 PM, you send the next day's schedule to all crews and drivers.</Alert>
+</div>);}
+
+function TeamScreen(){
+  const [sel,setSel]=useState(null);
+  const [filter,setFilter]=useState("all");
+  const cats=[{id:"all",label:"All"},{id:"internal",label:"Internal"},{id:"supervisors",label:"Supervisors"},{id:"drivers",label:"Drivers"}];
+  const filtered=TEAM.filter(m=>{
+    if(filter==="all")return true;
+    if(filter==="internal")return ["Eduardo Buratto","You (Natalia Azevedo)","Raphaelle","Fernanda","Jenny"].includes(m.name);
+    if(filter==="supervisors")return ["Carlos","Eduardo Moreira","Joseph","Marcelo"].includes(m.name);
+    if(filter==="drivers")return ["Arthur","Noel"].includes(m.name);
+    return true;
+  });
+  return(<div>
+    <SH icon="👥" title="The Full Team" sub="Tap any person to see their complete role"/>
+    <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:20}}>{cats.map(c=>(<button key={c.id} onClick={()=>{setFilter(c.id);setSel(null);}} style={{...(filter===c.id?s.btn(B.dark):s.ghost(B.dark)),padding:"7px 16px",fontSize:12}}>{c.label}</button>))}</div>
+    <div style={s.grid(150)}>{filtered.map((m,i)=>{const idx=TEAM.findIndex(t=>t.name===m.name);return(<div key={i} onClick={()=>setSel(sel===idx?null:idx)} style={{background:sel===idx?m.color:"#fff",borderRadius:14,padding:"16px 12px",textAlign:"center",cursor:"pointer",border:`2px solid ${sel===idx?m.color:"#e5e5e5"}`,transition:"all .2s",boxShadow:sel===idx?`0 4px 20px ${m.color}44`:"none"}}><div style={{fontSize:28,marginBottom:6}}>{m.emoji}</div><div style={{fontSize:13,fontWeight:800,color:sel===idx?"#fff":B.dark,lineHeight:1.2}}>{m.name}</div><div style={{fontSize:10,color:sel===idx?"rgba(255,255,255,.75)":"#888",marginTop:4,fontWeight:600}}>{m.role}</div></div>);})}</div>
+    {sel!==null&&(<div style={{...s.card(TEAM[sel].color),marginTop:16}}><div style={{display:"flex",gap:14,marginBottom:14}}><span style={{fontSize:40}}>{TEAM[sel].emoji}</span><div><div style={{fontSize:17,fontWeight:800,color:TEAM[sel].color}}>{TEAM[sel].name}</div><div style={{fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:"#888",marginTop:3}}>{TEAM[sel].role}</div></div></div>{TEAM[sel].details.map((d,i)=>(<div key={i} style={{display:"flex",gap:10,marginBottom:8,alignItems:"flex-start"}}><div style={{width:6,height:6,borderRadius:"50%",background:TEAM[sel].color,marginTop:7,flexShrink:0}}/><div style={{fontSize:13,color:"#444",lineHeight:1.6}}>{d}</div></div>))}</div>)}
+  </div>);
+}
+
+function MondayScreen(){
+  const [open,setOpen]=useState(-1);
+  const boards=[
+    {name:"Awaiting Release Builder",color:B.blue,who:"Raphaelle + Fernanda + You",icon:"📋",
+     desc:"This board contains BUILDER projects only. This is where you (Schedule Coordinator) take the measurements from the blueprint, create sub-items in each project with those measurements, so Fernanda can enter the Delay Charges into QuickBooks.",
+     statuses:[{l:"Awaiting Release Build",c:"#fff3cd",t:"#856404",d:"Builder project entered — you read the blueprint, create sub-items with measurements for Fernanda to input Delay Charges in QuickBooks"},{l:"Ready for Release",c:"#d1e7dd",t:"#0f5132",d:"All conditions met — project moves to General Jobs"}],
+     rules:["Builder projects ONLY — homeowner projects are handled in Controller HO","You read the blueprint and create sub-items with the measurements directly in Monday","Those measurements are used by Fernanda to create the Delay Charges in QuickBooks"]},
+    {name:"Controller HO",color:"#1a6e8a",who:"Controller Department + Finance Invoice",icon:"🏠",
+     desc:"This board contains HOMEOWNER (retail) projects only. The Controller department keeps all project statuses organized here — tracking permit approval, 25% deposit collection (together with Finance Invoice), and release readiness.",
+     statuses:[{l:"Awaiting Permit",c:"#fff3cd",t:"#856404",d:"Waiting for permit approval before release"},{l:"25% Payment Collected",c:"#d1e7dd",t:"#0f5132",d:"25% deposit confirmed — required for projects over $3,000"},{l:"Contract Signed",c:"#cfe2ff",t:"#084298",d:"Client signed contract — mandatory for all homeowner projects"},{l:"Ready for Release",c:"#d1ffea",t:"#0a6640",d:"All conditions met — project moves to General Jobs"}],
+     rules:["Homeowner projects ONLY","Controller department ensures the project is 100% ready before release","25% deposit mandatory for projects over $3,000","Projects under $3,000 require signed contract only","Contract signature mandatory for ALL homeowner projects","All permits must be approved (HOA or city) before release"]},
+    {name:"General Jobs Board",color:B.dark,who:"You (primary)",icon:"⚙️",
+     desc:"Your main workspace. Projects arrive here after being released. You assign supervisors, monitor execution, and coordinate materials and payroll from this board.",
+     statuses:[{l:"Schedule Job",c:"#cfe2ff",t:"#084298",d:"Scheduled for the current week"},{l:"Future Schedule",c:"#e8d5f7",t:"#5a1d8a",d:"Scheduled for next week"},{l:"Working On",c:"#d1e7dd",t:"#0f5132",d:"Currently being executed by crew"},{l:"Working on Coping",c:"#d1ffea",t:"#0a6640",d:"Currently in coping phase"},{l:"Punchout Pending",c:"#fff3cd",t:"#856404",d:"Job done but has unresolved issues"},{l:"Punchout Schedule",c:"#ffe5d0",t:"#7c3d00",d:"Fix work scheduled"},{l:"Invoice",c:"#e8d5f7",t:"#5a1d8a",d:"Ready for billing and payroll"},{l:"On Hold",c:"#e9ecef",t:"#495057",d:"Paused — logistics or schedule related"}],
+     rules:["This is where your active daily work happens","All project name entries must match Monday/Matri exactly","Supervisor measurements are due every Monday"]},
+    {name:"Repairs Board",color:B.red,who:"You + Marcelo",icon:"🔧",
+     desc:"Manages all repair requests from builders and homeowners. Raphaelle uploads repair requests here and tags you. Marcelo (Warranty Manager) handles all execution.",
+     statuses:[{l:"Needs Check",c:"#fff3cd",t:"#856404",d:"Just arrived — assess if you have info"},{l:"Schedule",c:"#d1e7dd",t:"#0f5132",d:"Ready to schedule"},{l:"Needs Schedule",c:"#cfe2ff",t:"#084298",d:"Marcelo needs to inspect first"},{l:"On Hold",c:"#e9ecef",t:"#495057",d:"Waiting for client, materials, or construction phase"},{l:"Mastercare Crew",c:"#e8d5f7",t:"#5a1d8a",d:"Marcelo's team assigned"},{l:"Backcharge",c:"#f8d7da",t:"#842029",d:"Worker's warranty responsibility"},{l:"Needs Approval",c:"#ffe5d0",t:"#7c3d00",d:"Repair >$1,000 — waiting Eduardo approval"},{l:"Working On",c:"#d1ffea",t:"#0a6640",d:"In progress"},{l:"Needs Update",c:"#fff3cd",t:"#856404",d:"Done — Raphaelle adds completion photos"}],
+     rules:["Min charge is always $250 (trip charge)","Over $1,000 requires Eduardo's approval","Marcelo is the Warranty Manager — all repairs go through him","Backcharge = deduct from worker pay via Jenny"]},
+    {name:"Logistic Board",color:B.teal,who:"You",icon:"🚚",
+     desc:"This is where all driver and trailer administration lives. Use this board to analyze and organize where each driver needs to go, the current location of each trailer and machine, and what the next scheduled deliveries are.",
+     statuses:[{l:"Arthur",c:"#d1e7dd",t:"#0f5132",d:"Deliveries and routes assigned to Arthur"},{l:"Noel",c:"#cfe2ff",t:"#084298",d:"Deliveries and routes assigned to Noel"},{l:"Joel",c:"#fff3cd",t:"#856404",d:"Deliveries assigned to Joel (external — charged per delivery)"},{l:"Others",c:"#e8d5f7",t:"#5a1d8a",d:"Deliveries assigned to other drivers or subcontractors"}],
+     rules:["Always update which project each trailer is currently located at","Enter all logistics demands into the project item first, then organize the delivery route","Plan efficient routes for drivers — group nearby deliveries to save time and fuel"]},
+    {name:"General Jobs — Finalized Projects",color:"#888",who:"Reference only",icon:"📁",
+     desc:"Archive of all completed projects. Use this to look up historical project information, verify past measurements, or check how similar jobs were handled.",
+     statuses:[{l:"Finalized",c:"#e9ecef",t:"#495057",d:"Project fully complete — invoice and payroll processed"}],
+     rules:["Read-only reference board","Use it to look up how past projects were executed","Good source of historical measurements for similar future jobs"]},
+  ];
+  return(<div>
+    <SH icon="🖥️" title="Monday.com Platform" sub="Your main project management tool — learn every board"/>
+    <Alert color={B.accent}><strong>Non-negotiable naming rule:</strong> Every project in your schedule must use the exact name from Monday/Matri including numbers. Never rename or abbreviate.</Alert>
+    {boards.map((b,i)=>(<div key={i} style={{marginBottom:12,borderRadius:14,overflow:"hidden",border:`2px solid ${open===i?b.color:"#e5e5e5"}`}}>
+      <div onClick={()=>setOpen(open===i?-1:i)} style={{background:open===i?b.color:"#fff",padding:"14px 18px",display:"flex",justifyContent:"space-between",alignItems:"center",cursor:"pointer"}}>
+        <div style={{display:"flex",gap:12,alignItems:"center"}}><span style={{fontSize:22}}>{b.icon}</span><div><div style={{fontSize:15,fontWeight:800,color:open===i?"#fff":B.dark}}>{b.name}</div><div style={{fontSize:12,color:open===i?"rgba(255,255,255,.75)":"#888",marginTop:2}}>{b.who}</div></div></div>
+        <span style={{color:open===i?"#fff":"#aaa",fontSize:18}}>{open===i?"▲":"▼"}</span>
+      </div>
+      {open===i&&(<div style={{background:"#fafafa",padding:"18px 20px"}}>
+        <p style={{...s.body,color:"#555",marginBottom:14}}>{b.desc}</p>
+        <div style={{fontSize:13,fontWeight:700,color:B.dark,marginBottom:8}}>Statuses:</div>
+        <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:14}}>{b.statuses.map(st=>(<div key={st.l} title={st.d} style={{...s.pill(st.c,st.t),cursor:"help"}}>{st.l}</div>))}</div>
+        <div style={{fontSize:12,color:"#888",marginBottom:10}}>💡 Hover/tap status pills to see their meaning</div>
+        <div style={{fontSize:13,fontWeight:700,color:B.dark,marginBottom:8}}>Key Rules:</div>
+        {b.rules.map((r,ri)=>(<div key={ri} style={{display:"flex",gap:8,marginBottom:6}}><span style={{color:b.color,fontWeight:700,fontSize:14}}>→</span><span style={{fontSize:13,color:"#444"}}>{r}</span></div>))}
+      </div>)}
+    </div>))}
+  </div>);
+}
+
+function FlowScreen(){
+  const [active,setActive]=useState(null);
+  return(<div>
+    <SH icon="🔄" title="Full Project Lifecycle" sub="10 steps from creation to invoice — tap each to expand"/>
+    <div style={{background:"#f0f4ee",borderRadius:12,padding:"12px 16px",marginBottom:20,fontSize:13,color:B.dark}}>💡 <strong>Tip:</strong> Steps marked ⚠️ are critical — mistakes here cause downstream problems.</div>
+    <div style={{position:"relative"}}>
+      <div style={{position:"absolute",left:23,top:24,bottom:24,width:2,background:`linear-gradient(to bottom,${B.dark},${B.light})`,borderRadius:99,zIndex:0}}/>
+      {FLOW_STEPS.map((step,i)=>(<div key={i} style={{display:"flex",gap:14,marginBottom:10,position:"relative",zIndex:1}}>
+        <div onClick={()=>setActive(active===i?null:i)} style={{width:48,height:48,borderRadius:"50%",background:active===i?B.dark:step.alert?B.accent+"33":"#e8f0e8",border:`3px solid ${step.alert?B.accent:B.dark}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,cursor:"pointer",flexShrink:0,transition:"all .2s"}}>{step.icon}</div>
+        <div style={{flex:1}}>
+          <div onClick={()=>setActive(active===i?null:i)} style={{background:active===i?B.dark:"#fff",borderRadius:12,padding:"13px 16px",cursor:"pointer",border:`1px solid ${active===i?B.dark:"#e5e5e5"}`,transition:"all .2s"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+              <div><div style={{fontSize:13,fontWeight:800,color:active===i?"#fff":B.dark}}>Step {step.num}: {step.title}</div><div style={{fontSize:11,color:active===i?"rgba(255,255,255,.65)":"#888",marginTop:2}}>👤 {step.who} · 📋 {step.board}</div></div>
+              <div style={{display:"flex",gap:6,alignItems:"center"}}>{step.alert&&<span style={{fontSize:16}}>⚠️</span>}<span style={{color:active===i?"rgba(255,255,255,.6)":"#ccc",fontSize:14}}>{active===i?"▲":"▼"}</span></div>
+            </div>
+            {active===i&&(<div style={{marginTop:14,paddingTop:14,borderTop:"1px solid rgba(255,255,255,.2)"}}>
+              <div style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,.9)",marginBottom:8}}>📌 What happens:</div>
+              <p style={{fontSize:13,color:"rgba(255,255,255,.85)",marginBottom:12,lineHeight:1.6}}>{step.what}</p>
+              <div style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,.9)",marginBottom:8}}>🔢 How it works:</div>
+              {step.how.map((h,hi)=>(<div key={hi} style={{display:"flex",gap:8,marginBottom:6}}><span style={{color:B.light,fontWeight:700,fontSize:13}}>→</span><span style={{fontSize:13,color:"rgba(255,255,255,.82)",lineHeight:1.5}}>{h}</span></div>))}
+              <div style={{background:"rgba(255,255,255,.12)",borderRadius:10,padding:"10px 14px",marginTop:12}}>
+                <div style={{fontSize:12,fontWeight:700,color:B.light,marginBottom:4}}>💡 Why this matters:</div>
+                <div style={{fontSize:12,color:"rgba(255,255,255,.8)",lineHeight:1.6}}>{step.why}</div>
+              </div>
+              {step.note&&<div style={{fontSize:12,color:B.light,marginTop:10,fontStyle:"italic"}}>📎 {step.note}</div>}
+            </div>)}
+          </div>
+        </div>
+      </div>))}
+    </div>
+  </div>);
+}
+
+function SupervisorsScreen(){
+  const [tab,setTab]=useState("assignment");
+  return(<div>
+    <SH icon="🦺" title="Supervisor Management" sub="Assignment rules, preside process, and checklists"/>
+    <div style={{display:"flex",gap:8,marginBottom:20,flexWrap:"wrap"}}>
+      {[["assignment","📋 Assignment"],["preside","📐 Preside"],["payroll","🧾 Invoice & Payroll"],["forms","📝 End-of-Job Forms"]].map(([id,l])=>(<button key={id} onClick={()=>setTab(id)} style={tab===id?s.btn(B.accent):s.ghost(B.accent)}>{l}</button>))}
+    </div>
+    {tab==="assignment"&&(<div>
+      {[{type:"Pool Builders",primary:"Carlos",backup:"Joseph (if Carlos overloaded)",emoji:"🏗️",why:"Carlos specializes in builder projects and has the technical knowledge for pool builder coordination."},{type:"Homeowners",primary:"Eduardo Moreira (prefers own sales)",backup:"Joseph (if Moreira overloaded)",emoji:"🏠",why:"Homeowner clients need a more personal relationship. Moreira prioritizes his own sales for continuity."},{type:"All Repairs",primary:"Marcelo — Warranty Manager",backup:"No backup — all repairs go to Marcelo",emoji:"🔧",why:"Marcelo is our Warranty Manager and responsible for all warranty matters. Repairs are centralized under him."}].map(r=>(<div key={r.type} style={s.card(B.accent)}>
+        <div style={{display:"flex",gap:12,alignItems:"center",marginBottom:12}}><span style={{fontSize:28}}>{r.emoji}</span><div style={{fontSize:16,fontWeight:800,color:B.dark}}>{r.type}</div></div>
+        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+          <div style={{background:"#f0f4ee",borderRadius:10,padding:"10px 14px"}}><div style={{fontSize:11,fontWeight:700,color:B.accent,letterSpacing:1,marginBottom:3}}>PRIMARY</div><div style={{fontSize:14,fontWeight:700,color:B.dark}}>{r.primary}</div></div>
+          <div style={{background:"#fafafa",borderRadius:10,padding:"10px 14px"}}><div style={{fontSize:11,fontWeight:700,color:"#888",letterSpacing:1,marginBottom:3}}>BACKUP</div><div style={{fontSize:13,color:"#555"}}>{r.backup}</div></div>
+          <div style={{background:"#fffbf3",borderRadius:10,padding:"10px 14px"}}><div style={{fontSize:11,fontWeight:700,color:B.accent,letterSpacing:1,marginBottom:3}}>WHY</div><div style={{fontSize:13,color:"#666"}}>{r.why}</div></div>
+        </div>
+      </div>))}
+    </div>)}
+    {tab==="preside"&&(<div>
+      <div style={s.card(B.dark)}><div style={s.h3(B.dark)}>What is a Preside?</div><p style={{...s.body,color:"#555"}}>The supervisor's on-site visit before execution begins. Foundation of accurate scheduling.</p></div>
+      {[{num:1,t:"Take measurements",d:"Accurate measurements for ALL materials: pavers, travertine, coping, walls."},{num:2,t:"Calculate logistics needs",d:"Sub-material quantities: sand, cement, drainage, rebars, wood."},{num:3,t:"Tag Raphaelle",d:"With material quantities for purchase order."},{num:4,t:"Tag You",d:"With sub-material logistics needs so you can arrange delivery."},{num:5,t:"Upload phase videos",d:"For quality control and dispute resolution."},{num:6,t:"Upload PDF of preside",d:"Stored in Monday for reference throughout the project."}].map(st=>(<div key={st.num} style={{...s.card(B.dark),padding:"14px 16px"}}><div style={{display:"flex",gap:12}}><div style={{width:28,height:28,background:B.dark,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:800,fontSize:12,flexShrink:0}}>{st.num}</div><div><div style={{fontSize:14,fontWeight:700,color:B.dark,marginBottom:3}}>{st.t}</div><div style={{fontSize:13,color:"#555"}}>{st.d}</div></div></div></div>))}
+      <Alert color={B.accent}>Scheduling CANNOT happen until preside is complete and both material (Raphaelle) and logistics (you) orders are confirmed.</Alert>
+    </div>)}
+    {tab==="payroll"&&(<div>
+      <Alert color={B.red}><strong>Measurements Deadline:</strong> Supervisors must submit REAL measurements by <strong>Monday</strong>. Follow up if not received.</Alert>
+      <div style={s.card(B.teal)}><div style={s.h3(B.teal)}>How you use measurements</div>
+        {[["Jenny (Finance — Payroll)","Real measurements → calculate crew payment"],["Fernanda (Finance — Invoice)","Real measurements → issue final client invoice"],["Monday.com","Update project sub-items with real numbers"]].map(([who,what])=>(<div key={who} style={{background:"#f0fbf8",borderRadius:10,padding:"10px 14px",marginBottom:8}}><div style={{fontSize:13,fontWeight:700,color:B.teal}}>{who}</div><div style={{fontSize:12,color:"#555",marginTop:3}}>{what}</div></div>))}
+      </div>
+    </div>)}
+    {tab==="forms"&&(<div>
+      <div style={s.card(B.purple)}><div style={s.h3(B.purple)}>📋 Punchout Form</div>{["Supervisor uploads punchout details as a normal Monday update","Fills out dedicated Punchout Link form (creates a record)","Documents what is incomplete and what is needed","You schedule the fix → Punchout Schedule → done → Invoice"].map((r,i)=>(<div key={i} style={{display:"flex",gap:8,marginBottom:8}}><span style={{color:B.purple,fontWeight:800}}>→</span><span style={{fontSize:13,color:"#444"}}>{r}</span></div>))}</div>
+      <div style={s.card(B.teal)}><div style={s.h3(B.teal)}>✅ Checklist Form</div>{["Evaluates crew's work quality on this specific job","Documents what went well and what went wrong","You review these periodically to improve future crew assignments","Key data source for long-term quality management"].map((r,i)=>(<div key={i} style={{display:"flex",gap:8,marginBottom:8}}><span style={{color:B.teal,fontWeight:800}}>→</span><span style={{fontSize:13,color:"#444"}}>{r}</span></div>))}</div>
+    </div>)}
+  </div>);
+}
+
+function WorkersScreen(){
+  const tabs=[{id:"sqft",label:"By Sqft",emoji:"📐",color:B.teal},{id:"coping",label:"Coping",emoji:"🏊",color:B.accent},{id:"daily",label:"Daily",emoji:"📅",color:B.blue},{id:"drivers",label:"Drivers",emoji:"🚛",color:"#1a6e8a"}];
+  const [tab,setTab]=useState("sqft");
+  const [sel,setSel]=useState(null);
+  const tabMap={sqft:["sqft"],coping:["coping"],daily:["daily"],drivers:["driver"]};
+  const filtered=WORKERS_DATA.filter(w=>tabMap[tab]?.includes(w.type));
+  const drivers=[{name:"Arthur",role:"Driver — non-visual materials",notes:"More experienced. Can be slow.",badge:"#1a6e8a"},{name:"Noel",role:"Driver — heavy machines (citizen)",notes:"Faster, more formal. Charges overtime. Preferred for CDL-sensitive tasks.",badge:"#1a6e8a"},{name:"Wilson",role:"Driver — Machine & Trailer Maintenance",notes:"Experienced. Regular speed. Responsible for maintaining machines and trailers.",badge:"#1a6e8a"},{name:"Joel",role:"External subcontractor — dump truck",notes:"Not fixed. Charged per delivery. Used for large projects.",badge:"#888"},{name:"Ruben",role:"External subcontractor — delivery material",notes:"Not fixed. Charged per delivery. Used for large projects and expensive manufacturer freight.",badge:"#888"}];
+  return(<div>
+    <SH icon="👷" title="Worker Profiles" sub="Full profiles, skills, pricing, and assignment priorities"/>
+    <div style={{...s.card(B.dark),padding:"14px 18px"}}><div style={{fontSize:13,fontWeight:700,color:B.dark,marginBottom:8}}>Assignment Priority Order</div><div style={{fontSize:13,color:"#444",lineHeight:2}}><strong>General work:</strong> Santiago → Peña → Isaías → Wype (last resort)<br/><strong>Coping:</strong> Fausto → Toby (backup only)<br/><strong>Turf:</strong> Gilberto (only option)</div></div>
+    <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:20}}>{tabs.map(t=>(<button key={t.id} onClick={()=>{setTab(t.id);setSel(null);}} style={tab===t.id?{...s.btn(t.color),fontSize:13}:{...s.ghost(t.color),padding:"9px 16px",fontSize:13}}>{t.emoji} {t.label}</button>))}</div>
+    {tab==="drivers"?(<div>{drivers.map((d,i)=>(<div key={i} style={s.card(d.badge)}><div style={{fontSize:15,fontWeight:800,color:d.badge,marginBottom:4}}>{d.name}</div><div style={{fontSize:12,fontWeight:700,color:"#888",marginBottom:8,textTransform:"uppercase",letterSpacing:1}}>{d.role}</div><div style={{fontSize:13,color:"#555"}}>{d.notes}</div></div>))}</div>):(
+    <div>
+      <div style={s.grid(145)}>{filtered.map((w,i)=>(<div key={i} onClick={()=>setSel(sel===i?null:i)} style={{background:sel===i?w.badge:"#fff",borderRadius:14,padding:"14px 12px",cursor:"pointer",border:`2px solid ${sel===i?w.badge:"#e5e5e5"}`,textAlign:"center",transition:"all .2s"}}><div style={{fontSize:28,marginBottom:4}}>{w.emoji}</div><div style={{fontSize:13,fontWeight:800,color:sel===i?"#fff":B.dark,lineHeight:1.2,marginBottom:4}}>{w.name}</div><div style={{fontSize:10,color:sel===i?"rgba(255,255,255,.75)":"#888"}}>{w.specialty.split("—")[0].trim()}</div>{tab!=="daily"&&w.priority===1&&<div style={{marginTop:6}}><span style={{...s.tag(sel===i?"#fff":w.badge),fontSize:10}}>Top Priority</span></div>}</div>))}</div>
+      {sel!==null&&filtered[sel]&&(<div style={{...s.card(filtered[sel].badge),marginTop:16}}>
+        <div style={{display:"flex",gap:14,marginBottom:16}}><span style={{fontSize:40}}>{filtered[sel].emoji}</span><div><div style={{fontSize:18,fontWeight:800,color:filtered[sel].badge}}>{filtered[sel].name}</div><div style={{fontSize:12,color:"#888",marginTop:2}}>{filtered[sel].specialty}</div><div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap"}}><span style={s.tag(filtered[sel].badge)}>Quality: {filtered[sel].quality}/10</span><span style={s.tag(filtered[sel].badge)}>Price: {filtered[sel].price}</span><span style={s.tag(filtered[sel].badge)}>Priority #{filtered[sel].priority}</span></div></div></div>
+        {filtered[sel].skills&&(<div style={{marginBottom:14}}><div style={{fontSize:13,fontWeight:700,color:B.dark,marginBottom:8}}>Skill Matrix:</div><div style={{display:"flex",flexWrap:"wrap",gap:6}}>{Object.entries(filtered[sel].skills).map(([sk,v])=>(<div key={sk} style={{background:v==="No"?"#f8d7da":v==="Yes"||v==="Excellent"||v.includes("Spec")?"#d1e7dd":"#fff3cd",color:v==="No"?"#842029":v==="Yes"||v==="Excellent"||v.includes("Spec")?"#0f5132":"#856404",borderRadius:8,padding:"5px 10px",fontSize:12}}><strong>{sk}:</strong> {v}</div>))}</div></div>)}
+        <p style={{fontSize:13,color:"#444",lineHeight:1.7,marginBottom:10}}>{filtered[sel].notes}</p>
+        <div style={{display:"flex",flexDirection:"column",gap:6}}><div style={{background:"#f7f7f7",borderRadius:8,padding:"8px 12px",fontSize:12,color:"#555"}}><strong>Availability:</strong> {filtered[sel].availability}</div><div style={{background:"#f7f7f7",borderRadius:8,padding:"8px 12px",fontSize:12,color:"#555"}}><strong>Pricing:</strong> {filtered[sel].pricing}</div></div>
+      </div>)}
+    </div>)}
+  </div>);
+}
+
+function RepairsScreen(){
+  const [tab,setTab]=useState("flow");
+  return(<div>
+    <SH icon="🔧" title="Repairs Board" sub="Complete repairs management process"/>
+    <div style={{display:"flex",gap:8,marginBottom:20,flexWrap:"wrap"}}>{[["flow","🔄 Repair Flow"],["statuses","🏷️ All Statuses"],["costs","💲 Cost Rules"],["backcharge","⚡ Backcharge"]].map(([id,l])=>(<button key={id} onClick={()=>setTab(id)} style={tab===id?s.btn(B.red):s.ghost(B.red)}>{l}</button>))}</div>
+    {tab==="flow"&&(<div>{[{n:1,t:"Repair Request Received",c:"#1a6e8a",d:"Raphaelle collects repair info and uploads to Repairs Board. Tags you.",dt:"Raphaelle gathers issue description, location, photos, and client contact info."},{n:2,t:"Assess: Needs Check",c:B.accent,d:"Do you have enough info to schedule immediately?",dt:"Check: issue? address? materials needed? cost range?"},{n:3,t:"Enough Info? → Schedule",c:"#2e7d5c",d:"If YES: change status to Schedule and assign crew.",dt:"Simple repairs with clear info can be scheduled directly."},{n:4,t:"Needs More Info? → Assign Marcelo",c:B.purple,d:"If NO: assign Marcelo to inspect. Status → Needs Schedule.",dt:"Always list Marcelo as the Supervisor, since he is our Warranty Manager and responsible for all warranty matters."},{n:5,t:"Execution → Working On",c:B.teal,d:"Crew dispatched. Status: Working On.",dt:"Monitor the repair. Coordinate logistics if materials are needed."},{n:6,t:"Completed → Needs Update",c:"#2e7d5c",d:"Done. Raphaelle adds completion photos with date and performer.",dt:"The Needs Update status signals Raphaelle to close the loop with documentation."}].map((st,i)=>(<div key={i} style={{...s.card(st.c),padding:"14px 16px"}}><div style={{display:"flex",gap:12}}><div style={{width:30,height:30,background:st.c,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:800,fontSize:13,flexShrink:0}}>{st.n}</div><div><div style={{fontSize:14,fontWeight:800,color:st.c,marginBottom:3}}>{st.t}</div><div style={{fontSize:13,color:B.dark,marginBottom:4}}>{st.d}</div><div style={{fontSize:12,color:"#666"}}>{st.dt}</div></div></div></div>))}</div>)}
+    {tab==="statuses"&&(<div>{REPAIR_STATUSES.map((rs,i)=>(<div key={i} style={{background:rs.color,borderRadius:12,padding:"12px 16px",marginBottom:10}}><div style={{fontSize:13,fontWeight:800,color:rs.text,marginBottom:4}}>{rs.label}</div><div style={{fontSize:13,color:rs.text,opacity:.85}}>{rs.desc}</div></div>))}</div>)}
+    {tab==="costs"&&(<div>{[["$250","Minimum trip charge","Every repair visit has a minimum of $250 regardless of complexity.","#2e7d5c"],["$250–$900","Regular repair range","Vast majority of repairs fall here. No special approval needed.",B.blue],["$1,000+","Requires Eduardo's approval","Tag Eduardo with 'Needs Approval'. Cannot schedule until approved.",B.red]].map(([p,l,d,c])=>(<div key={p} style={{...s.card(c),marginBottom:14}}><div style={{display:"flex",gap:14,alignItems:"flex-start"}}><div style={{background:c,borderRadius:12,padding:"8px 12px",minWidth:80,textAlign:"center"}}><div style={{fontSize:18,fontWeight:900,color:"#fff"}}>{p}</div></div><div><div style={{fontSize:14,fontWeight:700,color:c,marginBottom:4}}>{l}</div><div style={{fontSize:13,color:"#555"}}>{d}</div></div></div></div>))}</div>)}
+    {tab==="backcharge"&&(<div>
+      <div style={s.card(B.red)}><div style={s.h3(B.red)}>⚡ What is a Backcharge?</div><p style={{...s.body,color:"#555"}}>A repair that is the direct responsibility of the worker/crew due to poor quality — covered under their ~6-month quality warranty.</p></div>
+      <div style={s.card(B.accent)}><div style={s.h3(B.accent)}>Backcharge Process</div>{[["1","Contact crew","Ask them to return to fix the defect — their warranty obligation"],["2","Crew refuses?","If they refuse, coordinate the repair yourself"],["3","Coordinate fix","Schedule another crew. Document all costs in Monday."],["4","Tag Jenny","Tag Jenny with repair cost to deduct from responsible crew's pay"]].map(([n,t,d])=>(<div key={n} style={{display:"flex",gap:12,marginBottom:12}}><div style={{width:26,height:26,background:B.accent,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:800,fontSize:12,flexShrink:0}}>{n}</div><div><div style={{fontSize:13,fontWeight:700,color:B.dark}}>{t}</div><div style={{fontSize:13,color:"#555",marginTop:2}}>{d}</div></div></div>))}</div>
+      <div style={s.card(B.teal)}><div style={s.h3(B.teal)}>Warranty vs Billable</div>{[["Within 1-year warranty","Warrant","Company covers the cost"],["Outside 1-year warranty","Billable","Client pays for the repair"],["Quality defect within 6 months","Backcharge","Worker covers via payroll deduction"]].map(([when,status,who])=>(<div key={status} style={{background:"#f0fbf8",borderRadius:10,padding:"10px 14px",marginBottom:8}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}><div style={{fontSize:13,color:"#444"}}>{when}</div><span style={s.tag(B.teal)}>{status}</span></div><div style={{fontSize:12,color:"#666"}}>{who}</div></div>))}</div>
+    </div>)}
+  </div>);
+}
+
+function LogisticsScreen(){
+  const [tab,setTab]=useState("overview");
+  return(<div>
+    <SH icon="🚚" title="Logistics & Materials" sub="Materials, trailers, and delivery coordination"/>
+    <div style={{display:"flex",gap:8,marginBottom:20,flexWrap:"wrap"}}>{[["overview","📦 Materials"],["trailers","🚛 Trailers"],["trash","🗑️ Trash Rules"],["planning","📍 Planning Tips"]].map(([id,l])=>(<button key={id} onClick={()=>setTab(id)} style={tab===id?s.btn("#1a6e8a"):s.ghost("#1a6e8a")}>{l}</button>))}</div>
+    {tab==="overview"&&(<div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:16}}>
+        <div style={{background:`linear-gradient(135deg,${B.dark},${B.mid})`,borderRadius:14,padding:16,color:"#fff"}}><div style={{fontSize:22,marginBottom:8}}>📦</div><div style={{fontSize:13,fontWeight:800,marginBottom:4}}>Visual Materials</div><div style={{fontSize:11,opacity:.85}}>Pavers, travertine, coping</div><div style={{marginTop:10,fontSize:11,background:"rgba(255,255,255,.15)",borderRadius:8,padding:"6px 10px",fontWeight:700}}>Raphaelle is responsible</div></div>
+        <div style={{background:`linear-gradient(135deg,${B.blue}cc,${B.blue})`,borderRadius:14,padding:16,color:"#fff"}}><div style={{fontSize:22,marginBottom:8}}>🔩</div><div style={{fontSize:13,fontWeight:800,marginBottom:4}}>Sub-Materials</div><div style={{fontSize:11,opacity:.85}}>Sand, cement, base, drainage, rebars, wood</div><div style={{marginTop:10,fontSize:11,background:"rgba(255,255,255,.15)",borderRadius:8,padding:"6px 10px",fontWeight:700}}>You coordinate</div></div>
+      </div>
+      <Alert color={B.red}><strong>Scheduling Rule:</strong> ONLY schedule when BOTH are confirmed: ✅ Raphaelle confirms visual materials + ✅ You confirm logistics. Missing either = do not schedule.</Alert>
+    </div>)}
+    {tab==="trailers"&&(<div>
+      {[{type:"Gooseneck (Gusnek)",qty:3,cap:"Up to 7 tons",use:"Visual materials, heavy loads",color:"#2e7d5c",detail:"Primary trailer for visual materials to site."},{type:"Dump Trailers",qty:4,cap:"5–6 tons",use:"Base materials (fines), sub-materials",color:B.blue,detail:"Used for base materials and bulk sub-materials. Also used as trash trailers."},{type:"Flat Trailers",qty:3,cap:"Equipment only",use:"Machines, pallets, wood, rebars",color:B.purple,detail:"Cannot carry loose materials. Used for equipment and heavy items only."}].map(t=>(<div key={t.type} style={s.card(t.color)}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}><div style={{fontSize:15,fontWeight:800,color:t.color}}>{t.type}</div><span style={{background:t.color,color:"#fff",borderRadius:99,padding:"4px 12px",fontSize:13,fontWeight:800}}>×{t.qty}</span></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:10}}><div style={{background:t.color+"15",borderRadius:8,padding:"8px 10px"}}><div style={{fontSize:10,fontWeight:700,color:t.color,letterSpacing:1}}>CAPACITY</div><div style={{fontSize:13,fontWeight:700,color:B.dark,marginTop:2}}>{t.cap}</div></div><div style={{background:t.color+"15",borderRadius:8,padding:"8px 10px"}}><div style={{fontSize:10,fontWeight:700,color:t.color,letterSpacing:1}}>USE</div><div style={{fontSize:12,fontWeight:600,color:B.dark,marginTop:2}}>{t.use}</div></div></div><div style={{fontSize:13,color:"#555"}}>{t.detail}</div></div>))}
+      <div style={{background:B.accent+"18",border:`1px solid ${B.accent}55`,borderLeft:`4px solid ${B.accent}`,borderRadius:12,padding:"14px 18px"}}><div style={{fontSize:14,fontWeight:700,color:B.accent,marginBottom:6}}>📍 AirTag Tracking</div><p style={{fontSize:13,color:"#555"}}>All trailers will have AirTags. You and the group will track every trailer's location in real time.</p></div>
+    </div>)}
+    {tab==="trash"&&(<div>
+      <Alert color={B.red}><strong>Non-negotiable:</strong> No dirty trailers in the warehouse. If no urgent demand, send to landfill immediately.</Alert>
+      {[{t:"Every project gets a trash trailer",d:"Sqft crews must leave the job site clean. A trash trailer must be on site for every project.",icon:"✅"},{t:"If trailer is NOT full",d:"Pick it up after base delivery. Return at end of project or when full.",icon:"📋"},{t:"If trailer IS full",d:"Schedule replacement 1–2 hours BEFORE crew finishes.",icon:"⏰"},{t:"Minimal trash only (pallets)",d:"Clean at warehouse to save the $150+ landfill fee.",icon:"💰"},{t:"More than minimal trash",d:"Send to landfill immediately.",icon:"🗑️"},{t:"Max 2 days for trailer logistics",d:"Any trailer issue must be resolved within 2 days.",icon:"⏱️"}].map((r,i)=>(<div key={i} style={s.card(i%2===0?B.dark:B.mid)}><div style={{display:"flex",gap:12}}><span style={{fontSize:24,flexShrink:0}}>{r.icon}</span><div><div style={{fontSize:14,fontWeight:700,color:i%2===0?B.dark:B.mid,marginBottom:4}}>{r.t}</div><div style={{fontSize:13,color:"#555"}}>{r.d}</div></div></div></div>))}
+    </div>)}
+    {tab==="planning"&&(<div>
+      <div style={s.card(B.blue)}><div style={s.h3(B.blue)}>🗺️ Google Maps Custom Map</div><p style={{...s.body,color:"#555",marginBottom:12}}>Create a custom pin map to optimize driver routes and identify nearby projects.</p>{["Create a custom map in Google Maps (My Maps)","Add color-coded pins by client type","Identify nearby projects for bundled deliveries","Example: If Arthur goes to Apopka, check nearby jobs to combine trips"].map((t,i)=>(<div key={i} style={{display:"flex",gap:8,marginBottom:8}}><span style={{color:B.blue,fontWeight:800}}>→</span><span style={{fontSize:13,color:"#444"}}>{t}</span></div>))}</div>
+      <div style={s.card(B.accent)}><div style={s.h3(B.accent)}>⏱️ Project Time Estimates</div>{[["Coping job (no spa)","1 day"],["Basic pool deck","1 day"],["Sealer / simple repair","Half to 1 day"],["Complex project","Multiple days"],["Trailer logistics","Max 2 days"]].map(([job,time])=>(<div key={job} style={{display:"flex",justifyContent:"space-between",padding:"8px 10px",background:"#fffbf3",borderRadius:8,marginBottom:6}}><span style={{fontSize:13,color:"#555"}}>{job}</span><strong style={{fontSize:13,color:B.accent}}>{time}</strong></div>))}</div>
+    </div>)}
+  </div>);
+}
+
+function ScheduleScreen(){
+  const [tab,setTab]=useState("structure");
+  return(<div>
+    <SH icon="📅" title="Schedule Management" sub="How to build, manage, and maintain the weekly schedule"/>
+    <div style={{display:"flex",gap:8,marginBottom:20,flexWrap:"wrap"}}>{[["structure","📆 Structure"],["rules","📋 Rules"],["workers","👷 Workers"],["comms","💬 Communications"]].map(([id,l])=>(<button key={id} onClick={()=>setTab(id)} style={tab===id?s.btn(B.purple):s.ghost(B.purple)}>{l}</button>))}</div>
+    {tab==="structure"&&(<div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:16}}>
+        <div style={{background:B.dark,borderRadius:14,padding:16,textAlign:"center"}}><div style={{fontSize:28,marginBottom:8}}>📂</div><div style={{fontSize:14,fontWeight:800,color:"#fff"}}>main schedule</div><div style={{fontSize:11,color:"rgba(255,255,255,.7)",marginTop:4}}>Current week + next week</div></div>
+        <div style={{background:"#888",borderRadius:14,padding:16,textAlign:"center"}}><div style={{fontSize:28,marginBottom:8}}>📁</div><div style={{fontSize:14,fontWeight:800,color:"#fff"}}>old schedule</div><div style={{fontSize:11,color:"rgba(255,255,255,.7)",marginTop:4}}>All past weeks archived</div></div>
+      </div>
+      {[{icon:"📅",t:"Two-week vision",d:"Always manage current week + next week simultaneously."},{icon:"📅",t:"Start planning Wednesday",d:"Every Wednesday, begin planning the following week."},{icon:"📁",t:"Archive past weeks",d:"Every past week moves to 'old schedule'. Never delete — they are historical records."},{icon:"🔄",t:"Future system",d:"Current spreadsheet will eventually be replaced by the E-D-O-O system."}].map((r,i)=>(<div key={i} style={s.card(B.purple)}><div style={{display:"flex",gap:12}}><span style={{fontSize:22}}>{r.icon}</span><div><div style={{fontSize:14,fontWeight:700,color:B.purple,marginBottom:4}}>{r.t}</div><div style={{fontSize:13,color:"#555"}}>{r.d}</div></div></div></div>))}
+    </div>)}
+    {tab==="rules"&&(<div>
+      <div style={{...s.card(B.red),padding:"16px 18px"}}><div style={{fontSize:14,fontWeight:800,color:B.red,marginBottom:8}}>🔴 Red Color = Fixed Date — NEVER Change</div><p style={{fontSize:13,color:"#555"}}>Red means the date was personally confirmed with the homeowner client. Moving it requires Eduardo's direct intervention.</p></div>
+      {[{t:"Exact project names",d:"Use exact name from Monday/Matri including all numbers. No abbreviations.",c:B.blue},{t:"Only schedule with confirmed materials",d:"Never schedule without both Raphaelle (visual) and you (logistics) confirmed.",c:B.red},{t:"Sqft worker availability",d:"When few projects: notify 1–2 days in advance. Always confirm.",c:B.teal},{t:"Organize by month",d:"Schedule sheets are organized by month. Always be working from the right month file.",c:B.purple}].map((r,i)=>(<div key={i} style={s.card(r.c)}><div style={{fontSize:14,fontWeight:700,color:r.c,marginBottom:4}}>→ {r.t}</div><div style={{fontSize:13,color:"#555"}}>{r.d}</div></div>))}
+    </div>)}
+    {tab==="workers"&&(<div>
+      <div style={s.card(B.teal)}><div style={s.h3(B.teal)}>Sqft Workers</div>{["Include exact project name and type of work","Specify estimated duration","Confirm material is on site before day starts","Notify 1–2 days ahead when projects are few","Payment is by production — no need to track hours"].map((r,i)=>(<div key={i} style={{display:"flex",gap:8,marginBottom:8}}><span style={{color:B.teal,fontWeight:800}}>→</span><span style={{fontSize:13,color:"#444"}}>{r}</span></div>))}</div>
+      <div style={s.card(B.blue)}><div style={s.h3(B.blue)}>Daily Workers</div>{["Include description of what they are doing on each project","Specify estimated hours for complex jobs","Track their start and end points for route planning","Include the project and any relevant notes"].map((r,i)=>(<div key={i} style={{display:"flex",gap:8,marginBottom:8}}><span style={{color:B.blue,fontWeight:800}}>→</span><span style={{fontSize:13,color:"#444"}}>{r}</span></div>))}</div>
+      <Alert color={B.accent}><strong>Coming soon: GPS tracking system</strong> — worker phones will record location at start and end of each project automatically.</Alert>
+    </div>)}
+    {tab==="comms"&&(<div>
+      <div style={{background:`linear-gradient(135deg,${B.dark},${B.mid})`,borderRadius:16,padding:20,marginBottom:16,color:"#fff"}}><div style={{fontSize:22,marginBottom:8}}>💬</div><div style={{fontSize:16,fontWeight:800,marginBottom:8}}>Dreamscapes Group — 5-Minute Rule</div><p style={{fontSize:14,opacity:.9,lineHeight:1.7}}>Respond to ALL messages within <strong>5 minutes maximum</strong>. Even without an answer, acknowledge: "On it, checking now."</p></div>
+      <div style={s.card(B.purple)}><div style={s.h3(B.purple)}>📤 Send Schedule at 5:30 PM</div><p style={{...s.body,color:"#555",marginBottom:10}}>Every evening at 5:30 PM, you send the next day's schedule to all crews and drivers.</p>{["Finalize all assignments for crews and drivers","Send clearly to each team and driver by 5:30 PM","Every crew and driver must know where they're going","Confirm last-minute logistics changes before sending","This is your daily independent responsibility"].map((r,i)=>(<div key={i} style={{display:"flex",gap:8,marginBottom:8}}><span style={{color:B.purple,fontWeight:800}}>→</span><span style={{fontSize:13,color:"#444"}}>{r}</span></div>))}</div>
+      <div style={s.card(B.accent)}><div style={s.h3(B.accent)}>Driver Communication</div>{["Drivers (Arthur, Noel) may contact you for schedule and logistics — acceptable","If a driver has a problem on site → they should call the supervisor, not you","Redirect unresolvable driver calls to the project supervisor immediately"].map((r,i)=>(<div key={i} style={{display:"flex",gap:8,marginBottom:8}}><span style={{color:B.accent,fontWeight:800}}>→</span><span style={{fontSize:13,color:"#444"}}>{r}</span></div>))}</div>
+    </div>)}
+  </div>);
+}
+
+function RulesScreen(){
+  const [sel,setSel]=useState(null);
+  return(<div>
+    <SH icon="⚡" title="The 10 Critical Rules" sub="Tap a rule to read the full explanation"/>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:12}}>
+      {KEY_RULES.map((r,i)=>(<div key={i} onClick={()=>setSel(sel===i?null:i)} style={{background:sel===i?r.color:"#fff",borderRadius:14,padding:"18px 14px",cursor:"pointer",border:`2px solid ${sel===i?r.color:"#e5e5e5"}`,minHeight:110,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",transition:"all .25s"}}>
+        {sel!==i?(<><div style={{fontSize:30,marginBottom:8}}>{r.icon}</div><div style={{fontSize:12,fontWeight:800,color:B.dark,lineHeight:1.3}}>{r.title}</div><div style={{fontSize:10,color:"#bbb",marginTop:6}}>{r.short}</div></>):(<><div style={{fontSize:20,marginBottom:6}}>{r.icon}</div><div style={{fontSize:12,fontWeight:800,color:"#fff",marginBottom:6}}>{r.title}</div><div style={{fontSize:11,color:"rgba(255,255,255,.9)",lineHeight:1.6,textAlign:"left"}}>{r.detail}</div></>)}
+      </div>))}
+    </div>
+  </div>);
+}
+
+function QuizScreen({onComplete}){
+  const [curr,setCurr]=useState(0);
+  const [sel,setSel]=useState(null);
+  const [confirmed,setConfirmed]=useState(false);
+  const [results,setResults]=useState([]);
+  const [done,setDone]=useState(false);
+  const q=QUIZ[curr];
+  function confirm(){if(sel===null)return;const correct=sel===q.ans;const nr=[...results,{correct,sel,q:curr}];setResults(nr);setConfirmed(true);if(curr===QUIZ.length-1)setTimeout(()=>{setDone(true);onComplete&&onComplete(nr);},1200);}
+  function next(){setCurr(curr+1);setSel(null);setConfirmed(false);}
+  if(done){
+    const score=results.filter(r=>r.correct).length;const pct=Math.round(score/QUIZ.length*100);
+    return(<div>
+      <SH icon="🧠" title="Results" sub="Your quiz performance"/>
+      <div style={{background:pct>=80?`linear-gradient(135deg,${B.teal},#2e7d5c)`:`linear-gradient(135deg,${B.accent},#c47b00)`,borderRadius:16,padding:28,textAlign:"center",marginBottom:24,color:"#fff"}}>
+        <div style={{fontSize:56,marginBottom:10}}>{pct>=80?"🎉":pct>=60?"📚":"💪"}</div>
+        <div style={{fontSize:36,fontWeight:900,marginBottom:6}}>{score}/{QUIZ.length}</div>
+        <div style={{fontSize:16,opacity:.9}}>{pct}% — {pct>=80?"Excellent! You're ready to start.":pct>=60?"Good — review highlighted modules.":"Review the training guide again."}</div>
+      </div>
+      <div style={s.card(B.dark)}>{results.map((r,i)=>(<div key={i} style={{background:r.correct?"#d1e7dd":"#f8d7da",borderRadius:10,padding:"12px 14px",marginBottom:10}}><div style={{display:"flex",gap:8,alignItems:"flex-start"}}><span style={{fontSize:18}}>{r.correct?"✅":"❌"}</span><div><div style={{fontSize:13,fontWeight:700,color:r.correct?"#0f5132":"#842029",marginBottom:4}}>Q{i+1}: {QUIZ[i].q.slice(0,70)}...</div><div style={{fontSize:12,color:r.correct?"#0f5132":"#555"}}>{r.correct?"Correct!":"💡 "+QUIZ[i].exp}</div></div></div></div>))}</div>
+      <button onClick={()=>{setCurr(0);setSel(null);setConfirmed(false);setResults([]);setDone(false);}} style={{...s.btn(B.dark),width:"100%"}}>Retake Quiz</button>
+    </div>);
+  }
+  return(<div>
+    <SH icon="🧠" title="Knowledge Quiz" sub={`Question ${curr+1} of ${QUIZ.length}`}/>
+    <div style={{background:"#f0f0f0",borderRadius:99,height:8,marginBottom:24}}><div style={{background:`linear-gradient(to right,${B.dark},${B.light})`,borderRadius:99,height:8,width:`${(curr/QUIZ.length)*100}%`,transition:"width .4s"}}/></div>
+    <div style={s.card(B.dark)}>
+      <div style={{fontSize:15,fontWeight:700,color:B.dark,lineHeight:1.5,marginBottom:20}}>{q.q}</div>
+      <div style={{display:"flex",flexDirection:"column",gap:10}}>
+        {q.opts.map((opt,i)=>{let bg="#f7f7f7",border="#e5e5e5",color="#333",fw=400;if(confirmed){if(i===q.ans){bg="#d1e7dd";border="#2e7d5c";color="#0f5132";fw=700;}else if(i===sel&&i!==q.ans){bg="#f8d7da";border=B.red;color="#842029";}}else if(sel===i){bg=B.dark+"18";border=B.dark;color=B.dark;fw=700;}return(<div key={i} onClick={()=>!confirmed&&setSel(i)} style={{background:bg,border:`2px solid ${border}`,borderRadius:10,padding:"12px 16px",cursor:confirmed?"default":"pointer",color,fontSize:14,fontWeight:fw,transition:"all .15s",display:"flex",gap:10,alignItems:"center"}}><span style={{width:26,height:26,background:border,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:11,fontWeight:800,flexShrink:0}}>{String.fromCharCode(65+i)}</span>{opt}</div>);})}
+      </div>
+      {confirmed&&(<div style={{background:sel===q.ans?"#d1e7dd":"#f8d7da",borderRadius:10,padding:"14px 16px",marginTop:14}}><div style={{fontSize:13,fontWeight:800,color:sel===q.ans?"#0f5132":"#842029",marginBottom:4}}>{sel===q.ans?"✅ Correct!":"❌ Not quite."}</div><div style={{fontSize:13,color:sel===q.ans?"#0f5132":"#555"}}>{q.exp}</div></div>)}
+    </div>
+    <div style={{display:"flex",justifyContent:"flex-end",gap:10}}>
+      {!confirmed?(<button onClick={confirm} disabled={sel===null} style={s.btn(sel===null?"#ccc":B.dark)}>{sel===null?"Select an answer":"Confirm Answer"}</button>):curr<QUIZ.length-1?(<button onClick={next} style={s.btn(B.dark)}>Next Question →</button>):(<button onClick={()=>setDone(true)} style={s.btn(B.teal)}>See Results 🎉</button>)}
+    </div>
+  </div>);
+}
+
+function App(){
+  const [active,setActive]=useState("intro");
+  const [visited,setVisited]=useState(new Set(["intro"]));
+  const [quizDone,setQuizDone]=useState(false);
+  const scrollRef=useRef(null);
+  const currIdx=MODULES.findIndex(m=>m.id===active);
+  function go(id){setActive(id);setVisited(v=>new Set([...v,id]));scrollRef.current?.scrollTo({top:0,behavior:"smooth"});}
+  function next(){if(currIdx<MODULES.length-1)go(MODULES[currIdx+1].id);}
+  function prev(){if(currIdx>0)go(MODULES[currIdx-1].id);}
+  const SCREENS={intro:<IntroScreen/>,team:<TeamScreen/>,monday:<MondayScreen/>,flow:<FlowScreen/>,supervisors:<SupervisorsScreen/>,workers:<WorkersScreen/>,repairs:<RepairsScreen/>,logistics:<LogisticsScreen/>,schedule:<ScheduleScreen/>,rules:<RulesScreen/>,quiz:<QuizScreen onComplete={()=>setQuizDone(true)}/>};
+  return(<div style={{display:"flex",flexDirection:"column",height:"100vh",background:B.cream,fontFamily:"'Segoe UI',Arial,sans-serif"}}>
+    <div style={{background:B.dark,padding:"12px 20px",flexShrink:0}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}><Logo/><div style={{textAlign:"right"}}><div style={{fontSize:13,fontWeight:700,color:"#fff"}}>Operations Training</div><div style={{fontSize:11,color:"rgba(255,255,255,.55)"}}>Schedule & Logistics Coordinator</div></div></div>
+      <div><div style={{display:"flex",justifyContent:"space-between",fontSize:11,color:"rgba(255,255,255,.65)",marginBottom:4}}><span>{visited.size}/{MODULES.length} modules visited</span><span>{Math.round(visited.size/MODULES.length*100)}%</span></div><div style={{background:"rgba(255,255,255,.15)",borderRadius:99,height:5}}><div style={{background:B.light,borderRadius:99,height:5,width:`${(visited.size/MODULES.length)*100}%`,transition:"width .5s"}}/></div></div>
+    </div>
+    <div style={{background:"#222",display:"flex",overflowX:"auto",flexShrink:0,scrollbarWidth:"none"}}>{MODULES.map(m=>(<button key={m.id} onClick={()=>go(m.id)} style={{background:active===m.id?m.color:"transparent",border:"none",color:active===m.id?"#fff":visited.has(m.id)?"rgba(255,255,255,.65)":"rgba(255,255,255,.35)",padding:"9px 14px",fontSize:11,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap",display:"flex",alignItems:"center",gap:5,borderBottom:active===m.id?"3px solid rgba(255,255,255,.4)":"3px solid transparent",transition:"all .18s",flexShrink:0}}><span>{m.icon}</span><span>{m.label}</span>{visited.has(m.id)&&active!==m.id&&<span style={{width:5,height:5,background:B.light,borderRadius:"50%"}}/>}</button>))}</div>
+    <div ref={scrollRef} style={{flex:1,overflowY:"auto",padding:"24px 18px 0"}}>
+      {SCREENS[active]}
+      <div style={{display:"flex",justifyContent:"space-between",padding:"24px 0 36px",gap:10}}>
+        <button onClick={prev} disabled={currIdx===0} style={{...s.ghost(B.dark),opacity:currIdx===0?.3:1,cursor:currIdx===0?"not-allowed":"pointer"}}>← {currIdx>0?MODULES[currIdx-1].label:"Back"}</button>
+        {currIdx<MODULES.length-1?(<button onClick={next} style={s.btn(MODULES[currIdx+1]?.color||B.dark)}>Next: {MODULES[currIdx+1].label} →</button>):(<div style={{background:quizDone?"#d1e7dd":"#f0f4ee",color:quizDone?"#0f5132":B.dark,borderRadius:10,padding:"10px 18px",fontSize:13,fontWeight:700}}>{quizDone?"✅ Training Complete!":"Complete the quiz above ↑"}</div>)}
+      </div>
+    </div>
+  </div>);
+}
+ReactDOM.render(React.createElement(App),document.getElementById('root'));
+</script>
+</body>
+</html>
